@@ -1,0 +1,239 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_WORD_LENGTH 100
+
+char **loadWords(const char *filename, int *wordCount);
+
+/**
+ * @brief Loads words from a specified file into a dynamically allocated array
+ * of strings.
+ *
+ * Opens the file, counts the words, allocates memory for the word list (array
+ * of char*) and for each individual word (char*), reads words line by line,
+ * stores them, and returns the list. Also updates the word count via the output
+ * parameter.
+ *
+ * @param filename The path to the file containing words (one word per line).
+ * @param wordCount A pointer to an integer where the number of loaded words
+ * will be stored. This is an output parameter.
+ * @return A pointer to the dynamically allocated array of word strings
+ * (char**), or NULL if an error occurs (e.g., file not found, memory allocation
+ * failed). The caller is responsible for freeing the allocated memory using
+ * freeWordList (which we will define later).
+ */
+char **loadWords(const char *filename, int *wordCount) {
+  *wordCount = 0;
+  FILE *file = NULL;
+  file = fopen(filename, "r");
+  char **wordList = NULL;
+  int i = 0;
+  char *currentWord = NULL;
+
+  if (file == NULL) {
+
+    fprintf(stderr, "Could not open the word file: %s\n", filename);
+    fprintf(stderr, "Please ensure the file exists in the same directory as "
+                    "the program.\n");
+
+    return NULL;
+  }
+  printf("DEBUG: File '%s' opened successfully.\n", filename);
+
+  int lineCount = 0;
+  char lineBuffer[MAX_WORD_LENGTH];
+
+  while (fgets(lineBuffer, MAX_WORD_LENGTH, file) != NULL) {
+    lineCount++;
+  }
+
+  if (ferror(file)) {
+    perror("Error reading file during word count");
+    fprintf(stderr, "An error occurred while trying to count words in '%s'.\n",
+            filename);
+    fclose(file);
+    return NULL;
+  }
+
+  if (lineCount == 0) {
+    fprintf(stderr,
+            "Warning: Word file '%s' is empty or contains no valid lines.\n",
+            filename);
+    fclose(file);
+    // We can return NULL or an empty list. Returning NULL is simpler for now.
+    // *wordCount is already 0.
+    return NULL;
+  }
+  rewind(file);
+
+  size_t listSize = lineCount * sizeof(char *);
+  wordList = (char **)malloc(listSize);
+  printf("DEBUG: Pointer for word list after malloc: %p\n", (void *)wordList);
+  if (wordList == NULL) {
+    perror("Memory allocation failed for word list");
+    fprintf(stderr, "Error: Could not allocate memory to store %d words.\n",
+            lineCount);
+    fclose(file);
+    return NULL;
+  }
+  for (int k = 0; k < lineCount; ++k) {
+    wordList[k] = NULL;
+  }
+  i = 0;
+
+  while (fgets(lineBuffer, MAX_WORD_LENGTH, file) != NULL) {
+    if (i >= lineCount) {
+      fprintf(stderr,
+              "Warning: Read more lines than initially counted. Stopping at %d "
+              "lines.\n",
+              lineCount);
+      break;
+    }
+
+    printf("DEBUG: Read line %d: %s", i + 1, lineBuffer);
+
+    size_t len = strlen(lineBuffer);
+
+    if (len > 0 && lineBuffer[len - 1] == '\n') {
+      lineBuffer[len - 1] = '\0';
+      printf("DEBUG: Removed trailing newline. String is now: [%s]\n",
+             lineBuffer);
+      len = strlen(lineBuffer);
+    } else {
+      printf("DEBUG: No trailing newline found or removed. String is: [%s]\n",
+             lineBuffer);
+    }
+    if (len == 0) {
+      printf("DEBUG: Skipping empty line %d.\\n", i + 1);
+      continue;
+    }
+
+    size_t wordMemorySize = len + 1;
+    printf("DEBUG: Allocating %zu bytes for word '%s'...\n", wordMemorySize,
+           lineBuffer);
+    currentWord = (char *)malloc(wordMemorySize);
+
+    if (currentWord == NULL) {
+      perror("Memory allocation failed for word string");
+      fprintf(stderr, "Error: Could not allocate memory for word #%d ('%s').\n",
+              i + 1, lineBuffer);
+      fprintf(stderr, "Cleaning up allocated memory before exiting...\n");
+      for (int j = 0; j < i; j++) {
+        if (wordList[j] != NULL) {
+          printf("DEBUG: Freeing previous word #%d at %p\n", j + 1,
+                 (void *)wordList[j]);
+          free(wordList[j]);
+        }
+      }
+      printf("DEBUG: Freeing word list array at %p\n", (void *)wordList);
+      free(wordList);
+      fclose(file);
+      return NULL;
+    }
+
+    strcpy(currentWord, lineBuffer);
+    wordList[i] = currentWord;
+
+    i++;
+  }
+  if (ferror(file)) {
+    perror("Error reading file during second pass");
+    fprintf(stderr, "An error occurred while reading words from '%s'.\\n",
+            filename);
+    fprintf(stderr, "DEBUG: Need to implement proper cleanup for partially "
+                    "loaded list on read error!\\n");
+    free(wordList); // Free the array of pointers
+    fclose(file);   // Close the file
+    return NULL;    // Signal failure
+  }
+  int finalWordCount = i;
+
+  if (fclose(file) == EOF) {
+    perror("Warning: Error closing file");
+  }
+  *wordCount = finalWordCount;
+
+  if (wordList != NULL) {
+    for (int j = 0; j < finalWordCount; j++) {
+      if (wordList[j] != NULL) {
+        free(wordList[j]);
+      }
+    }
+    free(wordList);
+  }
+
+  return wordList;
+}
+
+/**
+ * @brief Frees the memory allocated for the word list.
+ * Frees each individual word string, then frees the array of pointers.
+ * @param wordList The list of words (array of char*).
+ * @param wordCount The number of words in the list.
+ */
+void freeWordList(char **wordList, int wordCount) {
+  if (wordList == NULL) {
+    return;
+  }
+  printf("\nDEBUG: Freeing word list memory...\n");
+  for (int i = 0; i < wordCount; i++) {
+    if (wordList[i] != NULL) {
+      free(wordList[i]);
+      wordList[i] = NULL;
+    }
+  }
+  free(wordList);
+  printf("DEBUG: Word list memory freed.\n");
+}
+
+int main() {
+  srand(time(NULL));
+  // Program logic will go here in later steps.
+  // Task 20: Call loadWords here.
+  // Task 21: Add error checking after calling loadWords.
+
+  printf("Welcome to Hangman!\n"); // Simple message
+
+  // Placeholder call to loadWords (will be refined in Task 20)
+  int loadedWordCount = 0;
+  char **wordList = loadWords("words.txt", &loadedWordCount);
+
+  // Placeholder check (will be refined in Task 21)
+  if (wordList == NULL) {
+    fprintf(stderr, "Error loading words from file.\n");
+    return 1;
+  }
+  if (loadedWordCount <= 0) {
+    fprintf(stderr, "Error: No words were loaded (%d). Cannot start game.\\n",
+            loadedWordCount);
+    // Even if wordListMain isn't NULL in some strange case, we need to free it.
+    freeWordList(wordList, loadedWordCount); // Use the cleanup function
+    return 1;                                // Indicate failure
+  }
+  // If we reach here, loading was successful!
+  printf("Word list loaded successfully. Ready to play!\n\n");
+
+  // --- Placeholder for subsequent game logic ---
+  printf("DEBUG: Game logic starts now...\n");
+  // Step 2: Select random word using wordListMain and loadedWordCount
+  // Example:
+  // int randomIndex = rand() % loadedWordCount;
+  // char *secretWord = wordListMain[randomIndex];
+  // printf("DEBUG: Random word selected: %s\\n", secretWord);
+
+  // Step 3: Initialize game state
+  // ... etc ...
+
+  // --- Memory cleanup ---
+  // IMPORTANT: Always free the allocated memory before the program exits!
+  // Call the dedicated cleanup function.
+  /* freeWordList(wordList, loadedWordCount); */
+
+  printf("\nGame Over. Thanks for playing!\n");
+
+  // A return value of 0 typically indicates that the program executed
+  // successfully.
+  return 0;
+}
