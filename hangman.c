@@ -1,9 +1,12 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #define MAX_WORD_LENGTH 100
+#define MAX_INCORRECT_GUESSES 6
+#define ALPHABET_SIZE 26
 
 char **loadWords(const char *filename, int *wordCount);
 void freeWordList(char **wordList, int wordCount);
@@ -194,25 +197,95 @@ int main() {
   int randomIndex = rand() % loadedWordCount;
   char *secretWord = wordList[randomIndex];
   printf("DEBUG: Random word selected: %s\n", secretWord);
+  printf("DEBUG: Maximum incorrect guesses allowed: %d\n",
+         MAX_INCORRECT_GUESSES);
 
-  // Step 2: Select random word using wordListMain and loadedWordCount
-  // Example:
-  // int randomIndex = rand() % loadedWordCount;
-  // char *secretWord = wordListMain[randomIndex];
-  // printf("DEBUG: Random word selected: %s\\n", secretWord);
+  int incorrectGuesses = 0;
+  size_t wordLength = strlen(secretWord);
+  char displayWord[wordLength + 1];
+  for (size_t j = 0; j < wordLength; j++) {
+    displayWord[j] = '_';
+  }
+  displayWord[wordLength] = '\0';
 
-  // Step 3: Initialize game state
-  // ... etc ...
+  char guessedLetters[ALPHABET_SIZE + 1] = {0};
+  int numGuessedLetters = 0;
+
+  int gameOver = 0;
+  int playerWon = 0;
+
+  printf("\nStarting the game loop...\n");
+
+  // Task 4.1: Start a `while` loop that continues as long as `gameOver` is
+  // false (0).
+  while (!gameOver) { // Loop continues as long as gameOver is 0
+    // --- Inside the loop: Turn logic ---
+
+    // Task 4.2: Clear screen (optional)
+    // system("clear"); // Linux/macOS
+    // system("cls");   // Windows
+    printf("\n------------------------------------\n"); // Simple separator
+
+    // Task 4.3: Display Hangman drawing (call drawHangman function - Step 7)
+    printf("Hangman state (Incorrect guesses: %d)\n", incorrectGuesses);
+    // drawHangman(incorrectGuesses); // Placeholder for Step 7
+
+    // Task 4.4: Display the displayWord (e.g., _ _ a _ _)
+    printf("Word: ");
+    for (size_t i = 0; i < wordLength; i++) {
+      printf("%c ", displayWord[i]); // Print with spaces
+    }
+    printf("\n");
+
+    // Task 4.5: Display incorrect guesses remaining
+    int guessesRemaining = MAX_INCORRECT_GUESSES - incorrectGuesses;
+    printf("Incorrect guesses remaining: %d\n", guessesRemaining);
+
+    // Task 4.6: Display letters already guessed
+    printf("Guessed letters: %s\n", guessedLetters);
+
+    // Task 4.7: Prompt user for guess
+    printf("Enter your guess (a single letter): ");
+
+    // Task 4.8: Read user input (will be refined in Step 5)
+    // char guess = getchar(); // Simple, but less safe - will improve
+    // while (getchar() != '\n'); // Consume trailing newline (basic way)
+
+    // Task 4.9: Process the guess (call logic from Step 5 & 6)
+    //   - Validate input (Step 5)
+    //   - Check if letter is in secretWord (Step 6)
+    //   - Update displayWord or incorrectGuesses (Step 6)
+    //   - Update guessedLetters (Step 5)
+    printf("-> Processing guess placeholder...\n"); // Placeholder
+
+    // --- Check for Win/Loss (will be implemented in Step 8) ---
+    // if (incorrectGuesses >= MAX_INCORRECT_GUESSES) { gameOver = 1; playerWon
+    // = 0; } else if (strchr(displayWord, '_') == NULL) { gameOver = 1;
+    // playerWon = 1; }
+    printf("-> Checking win/loss placeholder...\n"); // Placeholder
+
+    // --- DEBUG: Force loop exit for now ---
+    if (guessesRemaining <= 0) { // Temporary exit condition for testing
+      printf("DEBUG: Forcing game over (out of guesses).\n");
+      gameOver = 1;
+    }
+
+  } // End of while (!gameOver) loop
+
+  // --- After the loop (Game Over) ---
+  printf("\n--- Game Over --- \n");
+  // Check playerWon flag (from Step 8) to display final message
+  if (playerWon) {
+    printf("Congratulations! You guessed the word: %s\n", secretWord);
+  } else {
+    printf("Sorry, you ran out of guesses. The word was: %s\n", secretWord);
+  }
 
   // --- Memory cleanup ---
-  // IMPORTANT: Always free the allocated memory before the program exits!
-  // Call the dedicated cleanup function.
-  /* freeWordList(wordList, loadedWordCount); */
-
-  printf("\nGame Over. Thanks for playing!\n");
-
+  printf("\nCleaning up allocated memory...\n");
   // A return value of 0 typically indicates that the program executed
   // successfully.
   freeWordList(wordList, loadedWordCount);
+  printf("\nGame Over. Thanks for playing!\n");
   return 0;
 }
