@@ -7,9 +7,11 @@
 #define MAX_WORD_LENGTH 100
 #define MAX_INCORRECT_GUESSES 6
 #define ALPHABET_SIZE 26
+#define SCREEN_CLEAR_LINES 50
 
 char **loadWords(const char *filename, int *wordCount);
 void freeWordList(char **wordList, int wordCount);
+void clearScreen();
 
 /**
  * @brief Loads words from a specified file into a dynamically allocated array
@@ -167,6 +169,19 @@ void freeWordList(char **wordList, int wordCount) {
   free(wordList);
 }
 
+void clearScreen() {
+  // Method 1: System calls (OS-dependent)
+  // Uncomment the appropriate line for your OS, or use conditional compilation
+  // system("cls"); // For Windows
+  // system("clear"); // For Linux/macOS
+
+  // Method 2: Printing newlines (Portable)
+  // Print a bunch of newlines to push old content off the screen.
+  for (int i = 0; i < SCREEN_CLEAR_LINES; i++) {
+    printf("\n");
+  }
+}
+
 int main() {
   srand(time(NULL));
   // Program logic will go here in later steps.
@@ -224,10 +239,12 @@ int main() {
     // Task 4.2: Clear screen (optional)
     // system("clear"); // Linux/macOS
     // system("cls");   // Windows
-    printf("\n------------------------------------\n"); // Simple separator
+    clearScreen();
+    printf("--- HANGMAN ---\n");
 
     // Task 4.3: Display Hangman drawing (call drawHangman function - Step 7)
-    printf("Hangman state (Incorrect guesses: %d)\n", incorrectGuesses);
+    printf("Hangman state (Incorrect guesses: %d/%d)\n", incorrectGuesses,
+           MAX_INCORRECT_GUESSES);
     // drawHangman(incorrectGuesses); // Placeholder for Step 7
 
     // Task 4.4: Display the displayWord (e.g., _ _ a _ _)
@@ -246,6 +263,24 @@ int main() {
 
     // Task 4.7: Prompt user for guess
     printf("Enter your guess (a single letter): ");
+    int raw_input = getchar();           // Read the first character as an int
+    char currentGuess = (char)raw_input; // Cast to char
+
+    int temp_char;
+    while ((temp_char = getchar()) != '\n' && temp_char != EOF) {
+      // Discard the character
+    }
+
+    if (raw_input == EOF) {
+      printf("\\nEOF detected. Exiting game.\\n");
+      gameOver = 1; // Exit the loop if EOF occurs
+      continue;     // Skip the rest of the loop iteration
+    }
+
+    // Task 4.9: Process the guess (call logic from Step 5 & 6)
+    // For now, just print the character read (for debugging)
+    printf("\n-> You guessed: '%c' (Processing placeholder...)\n",
+           currentGuess); // Placeholder
 
     // Task 4.8: Read user input (will be refined in Step 5)
     // char guess = getchar(); // Simple, but less safe - will improve
@@ -270,8 +305,11 @@ int main() {
       gameOver = 1;
     }
 
+    if (currentGuess != 'a') {
+      incorrectGuesses++; // REMOVE/REPLACE THIS LATER!
+    }
   } // End of while (!gameOver) loop
-
+  clearScreen();
   // --- After the loop (Game Over) ---
   printf("\n--- Game Over --- \n");
   // Check playerWon flag (from Step 8) to display final message
