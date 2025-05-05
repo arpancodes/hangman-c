@@ -6,6 +6,7 @@
 #define MAX_WORD_LENGTH 100
 
 char **loadWords(const char *filename, int *wordCount);
+void freeWordList(char **wordList, int wordCount);
 
 /**
  * @brief Loads words from a specified file into a dynamically allocated array
@@ -40,7 +41,6 @@ char **loadWords(const char *filename, int *wordCount) {
 
     return NULL;
   }
-  printf("DEBUG: File '%s' opened successfully.\n", filename);
 
   int lineCount = 0;
   char lineBuffer[MAX_WORD_LENGTH];
@@ -70,7 +70,6 @@ char **loadWords(const char *filename, int *wordCount) {
 
   size_t listSize = lineCount * sizeof(char *);
   wordList = (char **)malloc(listSize);
-  printf("DEBUG: Pointer for word list after malloc: %p\n", (void *)wordList);
   if (wordList == NULL) {
     perror("Memory allocation failed for word list");
     fprintf(stderr, "Error: Could not allocate memory to store %d words.\n",
@@ -91,28 +90,17 @@ char **loadWords(const char *filename, int *wordCount) {
               lineCount);
       break;
     }
-
-    printf("DEBUG: Read line %d: %s", i + 1, lineBuffer);
-
     size_t len = strlen(lineBuffer);
 
     if (len > 0 && lineBuffer[len - 1] == '\n') {
       lineBuffer[len - 1] = '\0';
-      printf("DEBUG: Removed trailing newline. String is now: [%s]\n",
-             lineBuffer);
       len = strlen(lineBuffer);
-    } else {
-      printf("DEBUG: No trailing newline found or removed. String is: [%s]\n",
-             lineBuffer);
     }
     if (len == 0) {
-      printf("DEBUG: Skipping empty line %d.\\n", i + 1);
       continue;
     }
 
     size_t wordMemorySize = len + 1;
-    printf("DEBUG: Allocating %zu bytes for word '%s'...\n", wordMemorySize,
-           lineBuffer);
     currentWord = (char *)malloc(wordMemorySize);
 
     if (currentWord == NULL) {
@@ -127,7 +115,6 @@ char **loadWords(const char *filename, int *wordCount) {
           free(wordList[j]);
         }
       }
-      printf("DEBUG: Freeing word list array at %p\n", (void *)wordList);
       free(wordList);
       fclose(file);
       return NULL;
@@ -140,7 +127,7 @@ char **loadWords(const char *filename, int *wordCount) {
   }
   if (ferror(file)) {
     perror("Error reading file during second pass");
-    fprintf(stderr, "An error occurred while reading words from '%s'.\\n",
+    fprintf(stderr, "An error occurred while reading words from '%s'.\n",
             filename);
     fprintf(stderr, "DEBUG: Need to implement proper cleanup for partially "
                     "loaded list on read error!\\n");
@@ -155,15 +142,6 @@ char **loadWords(const char *filename, int *wordCount) {
   }
   *wordCount = finalWordCount;
 
-  if (wordList != NULL) {
-    for (int j = 0; j < finalWordCount; j++) {
-      if (wordList[j] != NULL) {
-        free(wordList[j]);
-      }
-    }
-    free(wordList);
-  }
-
   return wordList;
 }
 
@@ -177,7 +155,6 @@ void freeWordList(char **wordList, int wordCount) {
   if (wordList == NULL) {
     return;
   }
-  printf("\nDEBUG: Freeing word list memory...\n");
   for (int i = 0; i < wordCount; i++) {
     if (wordList[i] != NULL) {
       free(wordList[i]);
@@ -185,7 +162,6 @@ void freeWordList(char **wordList, int wordCount) {
     }
   }
   free(wordList);
-  printf("DEBUG: Word list memory freed.\n");
 }
 
 int main() {
@@ -215,8 +191,10 @@ int main() {
   // If we reach here, loading was successful!
   printf("Word list loaded successfully. Ready to play!\n\n");
 
-  // --- Placeholder for subsequent game logic ---
-  printf("DEBUG: Game logic starts now...\n");
+  int randomIndex = rand() % loadedWordCount;
+  char *secretWord = wordList[randomIndex];
+  printf("DEBUG: Random word selected: %s\n", secretWord);
+
   // Step 2: Select random word using wordListMain and loadedWordCount
   // Example:
   // int randomIndex = rand() % loadedWordCount;
@@ -235,5 +213,6 @@ int main() {
 
   // A return value of 0 typically indicates that the program executed
   // successfully.
+  freeWordList(wordList, loadedWordCount);
   return 0;
 }
