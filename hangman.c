@@ -327,39 +327,39 @@ int main() {
         numGuessedLetters++;
         guessedLetters[numGuessedLetters] = '\0';
 
-        // Task 5.8: Add the new letter to guessedLetters (To be implemented
-        // next) For now, just print a confirmation.
-        printf("\\n-> Valid new guess: '%c' (Processing placeholder...)\\n",
-               currentGuess);
-
         // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---\
                 // Use 'currentGuess'
+        int correctGuess = 0;
+        printf("\n-> Processing new guess '%c'...\n", currentGuess);
+        printf("    -> Checking '%c' against secret word '%s'...\n",
+               currentGuess, secretWord); // Debug
+        for (size_t i = 0; i < wordLength; i++) {
+          if (secretWord[i] == currentGuess) {
+            printf("Found match at index %zu! (Will update displayWord)\n",
+                   i);                     // Debug
+            displayWord[i] = currentGuess; // Task 6.3
+            correctGuess = 1;              // Task 6.4
+          }
+        }
+
+        if (!correctGuess) {
+          printf(
+              "Guess '%c' was INCORRECT. (Will increment incorrectGuesses)\n",
+              currentGuess);  // Debug
+          incorrectGuesses++; // Task 6.5
+        } else {
+          printf("Guess '%c' was CORRECT.\n", currentGuess); // Debug
+        }
 
       } // End of check for new/repeat guess
 
     } // End of validation checks block
 
-    // Task 5.4: Check if it's an alphabet character (isalpha)
-    // Task 5.5: Handle non-alpha input
-    // Task 5.6: Check if already guessed
-    // Task 5.7: Handle already guessed
-
-    // Task 5.8: Add to guessedLetters if new and valid
-
-    // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---
-    // Use 'currentGuess'
-
-    printf("-> Processing guess placeholder...\n"); // Placeholder
-
-    printf("-> Checking win/loss placeholder...\n"); // Placeholder
-
-    if (guessesRemaining <= 0) { // Temporary exit condition for testing
+    if (guessesRemaining <= 0 &&
+        !gameOver) { // Temporary exit condition for testing
       printf("DEBUG: Forcing game over (out of guesses).\n");
       gameOver = 1;
-    }
-
-    if (currentGuess != 'a') {
-      incorrectGuesses++; // REMOVE/REPLACE THIS LATER!
+      pauseForUser();
     }
   } // End of while (!gameOver) loop
   clearScreen();
