@@ -5,6 +5,7 @@
 #include <time.h>
 
 #define MAX_WORD_LENGTH 100
+#define INPUT_BUFFER_SIZE 10
 #define MAX_INCORRECT_GUESSES 6
 #define ALPHABET_SIZE 26
 #define SCREEN_CLEAR_LINES 50
@@ -182,6 +183,17 @@ void clearScreen() {
   }
 }
 
+void pauseForUser() {
+  printf("Press Enter to continue...");
+  char discard;
+  // Clear any remaining characters from the current input line first
+  while ((discard = getchar()) != '\n' && discard != EOF)
+    ;
+  // Wait for a new Enter press
+  while ((discard = getchar()) != '\n' && discard != EOF)
+    ;
+}
+
 int main() {
   srand(time(NULL));
   // Program logic will go here in later steps.
@@ -263,43 +275,84 @@ int main() {
 
     // Task 4.7: Prompt user for guess
     printf("Enter your guess (a single letter): ");
-    int raw_input = getchar();           // Read the first character as an int
-    char currentGuess = (char)raw_input; // Cast to char
+    char inputBuffer[INPUT_BUFFER_SIZE]; // Buffer to hold the raw input line
+    char currentGuess = '\0';            // Initialize guess character
 
-    int temp_char;
-    while ((temp_char = getchar()) != '\n' && temp_char != EOF) {
-      // Discard the character
+    // Read a line from standard input (keyboard)
+    if (fgets(inputBuffer, sizeof(inputBuffer), stdin) == NULL) {
+      // Handle error or EOF (End Of File) condition
+      // If fgets returns NULL, it could be an error or EOF.
+      // EOF is often triggered by Ctrl+D (Unix/Linux/macOS) or Ctrl+Z then
+      // Enter (Windows).
+      if (feof(stdin)) {
+        printf("\nEOF detected on input. Exiting game.\n");
+      } else {
+        // A read error occurred, less common with stdin
+        perror("Error reading input");
+      }
+      gameOver = 1; // Set flag to exit the game loop
+      continue;     // Skip the rest of this loop iteration
     }
 
-    if (raw_input == EOF) {
-      printf("\\nEOF detected. Exiting game.\\n");
-      gameOver = 1; // Exit the loop if EOF occurs
-      continue;     // Skip the rest of the loop iteration
+    if (strlen(inputBuffer) != 2) {
+      printf("Invalid input format. Please enter exactly one letter and press "
+             "Enter.\n");
+      pauseForUser();
+      continue;
+    } else {
+      currentGuess = inputBuffer[0];
+      currentGuess = tolower(currentGuess);
+      if (!isalpha(currentGuess)) {
+        printf("Invalid input. Please enter a letter (a-z).\n");
+        pauseForUser();
+        continue;
+      }
     }
 
-    // Task 4.9: Process the guess (call logic from Step 5 & 6)
-    // For now, just print the character read (for debugging)
-    printf("\n-> You guessed: '%c' (Processing placeholder...)\n",
-           currentGuess); // Placeholder
+    // Placeholder for where the rest of Step 5 and Step 6 logic goes
+    if (isalpha(currentGuess)) {
 
-    // Task 4.8: Read user input (will be refined in Step 5)
-    // char guess = getchar(); // Simple, but less safe - will improve
-    // while (getchar() != '\n'); // Consume trailing newline (basic way)
+      // Task 5.6: Check if the letter was already guessed.
+      // Use strchr (from <string.h>) to search within guessedLetters.
+      // It returns NULL if the character is not found.
+      if (strchr(guessedLetters, currentGuess) != NULL) {
+        // Task 5.7: Handle the case where the letter was already guessed.
+        printf("\\n-> You already guessed '%c'. Try a different letter.\\n",
+               currentGuess);
+        pauseForUser();
+        continue; // Skip the rest of this turn
+      } else {
+        // Letter is new and valid!
+        guessedLetters[numGuessedLetters] = currentGuess;
+        numGuessedLetters++;
+        guessedLetters[numGuessedLetters] = '\0';
 
-    // Task 4.9: Process the guess (call logic from Step 5 & 6)
-    //   - Validate input (Step 5)
-    //   - Check if letter is in secretWord (Step 6)
-    //   - Update displayWord or incorrectGuesses (Step 6)
-    //   - Update guessedLetters (Step 5)
+        // Task 5.8: Add the new letter to guessedLetters (To be implemented
+        // next) For now, just print a confirmation.
+        printf("\\n-> Valid new guess: '%c' (Processing placeholder...)\\n",
+               currentGuess);
+
+        // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---\
+                // Use 'currentGuess'
+
+      } // End of check for new/repeat guess
+
+    } // End of validation checks block
+
+    // Task 5.4: Check if it's an alphabet character (isalpha)
+    // Task 5.5: Handle non-alpha input
+    // Task 5.6: Check if already guessed
+    // Task 5.7: Handle already guessed
+
+    // Task 5.8: Add to guessedLetters if new and valid
+
+    // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---
+    // Use 'currentGuess'
+
     printf("-> Processing guess placeholder...\n"); // Placeholder
 
-    // --- Check for Win/Loss (will be implemented in Step 8) ---
-    // if (incorrectGuesses >= MAX_INCORRECT_GUESSES) { gameOver = 1; playerWon
-    // = 0; } else if (strchr(displayWord, '_') == NULL) { gameOver = 1;
-    // playerWon = 1; }
     printf("-> Checking win/loss placeholder...\n"); // Placeholder
 
-    // --- DEBUG: Force loop exit for now ---
     if (guessesRemaining <= 0) { // Temporary exit condition for testing
       printf("DEBUG: Forcing game over (out of guesses).\n");
       gameOver = 1;
