@@ -6,14 +6,19 @@
 
 #define MAX_WORD_LENGTH 100
 #define INPUT_BUFFER_SIZE 10
-#define MAX_INCORRECT_GUESSES 6
 #define ALPHABET_SIZE 26
 #define SCREEN_CLEAR_LINES 50
+#define DEFAULT_DIFFICULTY_CHOICE 2
+// Difficulty settings
+#define EASY_GUESSES 8
+#define MEDIUM_GUESSES 6 // Default
+#define HARD_GUESSES 4
 
 char **loadWords(const char *filename, int *wordCount);
 void freeWordList(char **wordList, int wordCount);
 void clearScreen();
 void pauseForUser();
+void consumeRemainingInput();
 void drawHangman(int incorrectGuesses);
 /**
  * @brief Loads words from a specified file into a dynamically allocated array
@@ -184,15 +189,15 @@ void clearScreen() {
   }
 }
 
+void consumeRemainingInput() {
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF)
+    ;
+}
+
 void pauseForUser() {
-  printf("Press Enter to continue...");
-  char discard;
-  // Clear any remaining characters from the current input line first
-  while ((discard = getchar()) != '\n' && discard != EOF)
-    ;
-  // Wait for a new Enter press
-  while ((discard = getchar()) != '\n' && discard != EOF)
-    ;
+  printf("\\nPress Enter to continue...");
+  consumeRemainingInput();
 }
 
 void drawHangman(int incorrectGuesses) {
@@ -315,12 +320,58 @@ int main() {
   printf("Word list loaded successfully. Ready to play!\n\n");
 
   char playAgain = 'y';
+  int maxIncorrectGuesses = MEDIUM_GUESSES;
   do {
+
+    printf("\n--- Select Difficulty ---\n");
+    printf("1. Easy   (8 incorrect guesses)\n");
+    printf("2. Medium (6 incorrect guesses)\n");
+    printf("3. Hard   (4 incorrect guesses)\n");
+    printf("Enter your choice (1-3): ");
+
+    char difficultyBuffer[INPUT_BUFFER_SIZE]; // Buffer for difficulty input
+    int difficultyChoice = -1;                // Initialize to an invalid choice
+
+    if (fgets(difficultyBuffer, sizeof(difficultyBuffer), stdin) == NULL) {
+      if (feof(stdin)) {
+        printf("\nEOF detected. Exiting.\n");
+      } else {
+        perror("Error reading difficulty choice");
+      }
+      playAgain = 'n'; // Signal to exit
+      continue;        // Skip rest of this loop iteration
+    }
+    int sscanf_result = sscanf(difficultyBuffer, "%d", &difficultyChoice);
+    switch (difficultyChoice) {
+    case 1:
+      maxIncorrectGuesses = EASY_GUESSES; // Set to 8
+      printf("-> Easy difficulty selected (%d guesses).\n",
+             maxIncorrectGuesses);
+      break;
+    case 2:
+      maxIncorrectGuesses = MEDIUM_GUESSES; // Set to 6
+      printf("-> Medium difficulty selected (%d guesses).\n",
+             maxIncorrectGuesses);
+      break;
+    case 3:
+      maxIncorrectGuesses = HARD_GUESSES; // Set to 4
+      printf("-> Hard difficulty selected (%d guesses).\n",
+             maxIncorrectGuesses);
+      break;
+    default:
+      // This handles cases where sscanf failed (sscanf_result != 1)
+      // OR the number entered was not 1, 2, or 3.
+      printf("Invalid choice. Defaulting to Medium difficulty.\n");
+      maxIncorrectGuesses = MEDIUM_GUESSES; // Set default (6)
+      break;                                // Exit the switch
+    }
+    pauseForUser();
+
     int randomIndex = rand() % loadedWordCount;
     char *secretWord = wordList[randomIndex];
     printf("DEBUG: Random word selected: %s\n", secretWord);
     printf("DEBUG: Maximum incorrect guesses allowed: %d\n",
-           MAX_INCORRECT_GUESSES);
+           maxIncorrectGuesses);
 
     int incorrectGuesses = 0;
     size_t wordLength = strlen(secretWord);
@@ -351,7 +402,7 @@ int main() {
       drawHangman(incorrectGuesses);
       // Task 4.3: Display Hangman drawing (call drawHangman function - Step 7)
       printf("Hangman state (Incorrect guesses: %d/%d)\n", incorrectGuesses,
-             MAX_INCORRECT_GUESSES);
+             maxIncorrectGuesses);
       // drawHangman(incorrectGuesses); // Placeholder for Step 7
 
       // Task 4.4: Display the displayWord (e.g., _ _ a _ _)
@@ -362,7 +413,7 @@ int main() {
       printf("\n");
 
       // Task 4.5: Display incorrect guesses remaining
-      int guessesRemaining = MAX_INCORRECT_GUESSES - incorrectGuesses;
+      int guessesRemaining = maxIncorrectGuesses - incorrectGuesses;
       printf("Incorrect guesses remaining: %d\n", guessesRemaining);
       // Task 4.6: Display letters already guessed
       printf("Guessed letters: %s\n", guessedLetters);
@@ -406,7 +457,7 @@ int main() {
 
       if (strchr(guessedLetters, currentGuess) != NULL) {
         // Task 5.7: Handle the case where the letter was already guessed.
-        printf("\\n-> You already guessed '%c'. Try a different letter.\\n",
+        printf("\n-> You already guessed '%c'. Try a different letter.\n",
                currentGuess);
         pauseForUser();
         continue; // Skip the rest of this turn
@@ -443,7 +494,7 @@ int main() {
 
       } // End of check for new/repeat guess
 
-      if (incorrectGuesses == MAX_INCORRECT_GUESSES) {
+      if (incorrectGuesses == maxIncorrectGuesses) {
         // Player has lost.
         gameOver = 1;
         playerWon = 0;
