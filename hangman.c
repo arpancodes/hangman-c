@@ -314,159 +314,176 @@ int main() {
   // If we reach here, loading was successful!
   printf("Word list loaded successfully. Ready to play!\n\n");
 
-  int randomIndex = rand() % loadedWordCount;
-  char *secretWord = wordList[randomIndex];
-  printf("DEBUG: Random word selected: %s\n", secretWord);
-  printf("DEBUG: Maximum incorrect guesses allowed: %d\n",
-         MAX_INCORRECT_GUESSES);
-
-  int incorrectGuesses = 0;
-  size_t wordLength = strlen(secretWord);
-  char displayWord[wordLength + 1];
-  for (size_t j = 0; j < wordLength; j++) {
-    displayWord[j] = '_';
-  }
-  displayWord[wordLength] = '\0';
-
-  char guessedLetters[ALPHABET_SIZE + 1] = {0};
-  int numGuessedLetters = 0;
-
-  int gameOver = 0;
-  int playerWon = 0;
-
-  printf("\nStarting the game loop...\n");
-
-  // Task 4.1: Start a `while` loop that continues as long as `gameOver` is
-  // false (0).
-  while (!gameOver) { // Loop continues as long as gameOver is 0
-    // --- Inside the loop: Turn logic ---
-
-    // Task 4.2: Clear screen (optional)
-    // system("clear"); // Linux/macOS
-    // system("cls");   // Windows
-    clearScreen();
-    printf("--- HANGMAN ---\n");
-    drawHangman(incorrectGuesses);
-    // Task 4.3: Display Hangman drawing (call drawHangman function - Step 7)
-    printf("Hangman state (Incorrect guesses: %d/%d)\n", incorrectGuesses,
+  char playAgain = 'y';
+  do {
+    int randomIndex = rand() % loadedWordCount;
+    char *secretWord = wordList[randomIndex];
+    printf("DEBUG: Random word selected: %s\n", secretWord);
+    printf("DEBUG: Maximum incorrect guesses allowed: %d\n",
            MAX_INCORRECT_GUESSES);
-    // drawHangman(incorrectGuesses); // Placeholder for Step 7
 
-    // Task 4.4: Display the displayWord (e.g., _ _ a _ _)
-    printf("Word: ");
-    for (size_t i = 0; i < wordLength; i++) {
-      printf("%c ", displayWord[i]); // Print with spaces
+    int incorrectGuesses = 0;
+    size_t wordLength = strlen(secretWord);
+    char displayWord[wordLength + 1];
+    for (size_t j = 0; j < wordLength; j++) {
+      displayWord[j] = '_';
     }
-    printf("\n");
+    displayWord[wordLength] = '\0';
 
-    // Task 4.5: Display incorrect guesses remaining
-    int guessesRemaining = MAX_INCORRECT_GUESSES - incorrectGuesses;
-    printf("Incorrect guesses remaining: %d\n", guessesRemaining);
-    // Task 4.6: Display letters already guessed
-    printf("Guessed letters: %s\n", guessedLetters);
+    char guessedLetters[ALPHABET_SIZE + 1] = {0};
+    int numGuessedLetters = 0;
 
-    // Task 4.7: Prompt user for guess
-    printf("Enter your guess (a single letter): ");
-    char inputBuffer[INPUT_BUFFER_SIZE]; // Buffer to hold the raw input line
-    char currentGuess = '\0';            // Initialize guess character
+    int gameOver = 0;
+    int playerWon = 0;
 
-    // Read a line from standard input (keyboard)
-    if (fgets(inputBuffer, sizeof(inputBuffer), stdin) == NULL) {
-      // Handle error or EOF (End Of File) condition
-      // If fgets returns NULL, it could be an error or EOF.
-      // EOF is often triggered by Ctrl+D (Unix/Linux/macOS) or Ctrl+Z then
-      // Enter (Windows).
-      if (feof(stdin)) {
-        printf("\nEOF detected on input. Exiting game.\n");
-      } else {
-        // A read error occurred, less common with stdin
-        perror("Error reading input");
+    printf("\nStarting the game loop...\n");
+
+    // Task 4.1: Start a `while` loop that continues as long as `gameOver` is
+    // false (0).
+    while (!gameOver) { // Loop continues as long as gameOver is 0
+      // --- Inside the loop: Turn logic ---
+
+      // Task 4.2: Clear screen (optional)
+      // system("clear"); // Linux/macOS
+      // system("cls");   // Windows
+      clearScreen();
+      printf("--- HANGMAN ---\n");
+      drawHangman(incorrectGuesses);
+      // Task 4.3: Display Hangman drawing (call drawHangman function - Step 7)
+      printf("Hangman state (Incorrect guesses: %d/%d)\n", incorrectGuesses,
+             MAX_INCORRECT_GUESSES);
+      // drawHangman(incorrectGuesses); // Placeholder for Step 7
+
+      // Task 4.4: Display the displayWord (e.g., _ _ a _ _)
+      printf("Word: ");
+      for (size_t i = 0; i < wordLength; i++) {
+        printf("%c ", displayWord[i]); // Print with spaces
       }
-      gameOver = 1; // Set flag to exit the game loop
-      continue;     // Skip the rest of this loop iteration
-    }
+      printf("\n");
 
-    if (strlen(inputBuffer) != 2) {
-      printf("Invalid input format. Please enter exactly one letter and press "
-             "Enter.\n");
-      pauseForUser();
-      continue;
-    } else {
-      currentGuess = inputBuffer[0];
-      currentGuess = tolower(currentGuess);
-      if (!isalpha(currentGuess)) {
-        printf("Invalid input. Please enter a letter (a-z).\n");
+      // Task 4.5: Display incorrect guesses remaining
+      int guessesRemaining = MAX_INCORRECT_GUESSES - incorrectGuesses;
+      printf("Incorrect guesses remaining: %d\n", guessesRemaining);
+      // Task 4.6: Display letters already guessed
+      printf("Guessed letters: %s\n", guessedLetters);
+
+      // Task 4.7: Prompt user for guess
+      printf("Enter your guess (a single letter): ");
+      char inputBuffer[INPUT_BUFFER_SIZE]; // Buffer to hold the raw input line
+      char currentGuess = '\0';            // Initialize guess character
+
+      // Read a line from standard input (keyboard)
+      if (fgets(inputBuffer, sizeof(inputBuffer), stdin) == NULL) {
+        // Handle error or EOF (End Of File) condition
+        // If fgets returns NULL, it could be an error or EOF.
+        // EOF is often triggered by Ctrl+D (Unix/Linux/macOS) or Ctrl+Z then
+        // Enter (Windows).
+        if (feof(stdin)) {
+          printf("\nEOF detected on input. Exiting game.\n");
+        } else {
+          // A read error occurred, less common with stdin
+          perror("Error reading input");
+        }
+        gameOver = 1; // Set flag to exit the game loop
+        continue;     // Skip the rest of this loop iteration
+      }
+
+      if (strlen(inputBuffer) != 2) {
+        printf(
+            "Invalid input format. Please enter exactly one letter and press "
+            "Enter.\n");
         pauseForUser();
         continue;
-      }
-    }
-
-    if (strchr(guessedLetters, currentGuess) != NULL) {
-      // Task 5.7: Handle the case where the letter was already guessed.
-      printf("\\n-> You already guessed '%c'. Try a different letter.\\n",
-             currentGuess);
-      pauseForUser();
-      continue; // Skip the rest of this turn
-    } else {
-      // Letter is new and valid!
-      guessedLetters[numGuessedLetters] = currentGuess;
-      numGuessedLetters++;
-      guessedLetters[numGuessedLetters] = '\0';
-
-      // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---\
-                // Use 'currentGuess'
-      int correctGuess = 0;
-      printf("\n-> Processing new guess '%c'...\n", currentGuess);
-      printf("    -> Checking '%c' against secret word '%s'...\n", currentGuess,
-             secretWord); // Debug
-      for (size_t i = 0; i < wordLength; i++) {
-        if (secretWord[i] == currentGuess) {
-          printf("Found match at index %zu! (Will update displayWord)\n",
-                 i);                     // Debug
-          displayWord[i] = currentGuess; // Task 6.3
-          correctGuess = 1;              // Task 6.4
+      } else {
+        currentGuess = inputBuffer[0];
+        currentGuess = tolower(currentGuess);
+        if (!isalpha(currentGuess)) {
+          printf("Invalid input. Please enter a letter (a-z).\n");
+          pauseForUser();
+          continue;
         }
       }
 
-      if (!correctGuess) {
-        printf("Guess '%c' was INCORRECT. (Will increment incorrectGuesses)\n",
-               currentGuess); // Debug
-        incorrectGuesses++;   // Task 6.5
+      if (strchr(guessedLetters, currentGuess) != NULL) {
+        // Task 5.7: Handle the case where the letter was already guessed.
+        printf("\\n-> You already guessed '%c'. Try a different letter.\\n",
+               currentGuess);
+        pauseForUser();
+        continue; // Skip the rest of this turn
       } else {
-        printf("Guess '%c' was CORRECT.\n", currentGuess); // Debug
-      }
+        // Letter is new and valid!
+        guessedLetters[numGuessedLetters] = currentGuess;
+        numGuessedLetters++;
+        guessedLetters[numGuessedLetters] = '\0';
 
-    } // End of check for new/repeat guess
+        // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---\
+                // Use 'currentGuess'
+        int correctGuess = 0;
+        printf("\n-> Processing new guess '%c'...\n", currentGuess);
+        printf("    -> Checking '%c' against secret word '%s'...\n",
+               currentGuess,
+               secretWord); // Debug
+        for (size_t i = 0; i < wordLength; i++) {
+          if (secretWord[i] == currentGuess) {
+            printf("Found match at index %zu! (Will update displayWord)\n",
+                   i);                     // Debug
+            displayWord[i] = currentGuess; // Task 6.3
+            correctGuess = 1;              // Task 6.4
+          }
+        }
 
-    if (incorrectGuesses == MAX_INCORRECT_GUESSES) {
-      // Player has lost.
-      gameOver = 1;
-      playerWon = 0;
-      // Print the loss message (already done after the loop, but can add
-      // immediate feedback too)
-      printf("\n\n*** Sorry, you've run out of guesses! ***\n");
-      printf("The word was: %s\n", secretWord);
-    } else {
-      if (strchr(displayWord, '_') == NULL) {
-        // Player has won - actions to take here (Task 8.4)
+        if (!correctGuess) {
+          printf(
+              "Guess '%c' was INCORRECT. (Will increment incorrectGuesses)\n",
+              currentGuess);  // Debug
+          incorrectGuesses++; // Task 6.5
+        } else {
+          printf("Guess '%c' was CORRECT.\n", currentGuess); // Debug
+        }
+
+      } // End of check for new/repeat guess
+
+      if (incorrectGuesses == MAX_INCORRECT_GUESSES) {
+        // Player has lost.
         gameOver = 1;
-        playerWon = 1;
-        printf("\n\n*** Congratulations! You guessed the word! ***\n");
+        playerWon = 0;
+      } else {
+        if (strchr(displayWord, '_') == NULL) {
+          // Player has won - actions to take here (Task 8.4)
+          gameOver = 1;
+          playerWon = 1;
+        }
       }
+
+    } // End of while (!gameOver) loop
+    clearScreen();
+    // --- After the loop (Game Over) ---
+    printf("\n--- Game Over --- \n");
+    drawHangman(incorrectGuesses);
+    // Check playerWon flag (from Step 8) to display final message
+    if (playerWon) {
+      printf("Congratulations! You guessed the word: %s\n", secretWord);
+    } else {
+      printf("Sorry, you ran out of guesses. The word was: %s\n", secretWord);
     }
 
-  } // End of while (!gameOver) loop
-  clearScreen();
-  // --- After the loop (Game Over) ---
-  printf("\n--- Game Over --- \n");
-  drawHangman(incorrectGuesses);
-  // Check playerWon flag (from Step 8) to display final message
-  if (playerWon) {
-    printf("Congratulations! You guessed the word: %s\n", secretWord);
-  } else {
-    printf("Sorry, you ran out of guesses. The word was: %s\n", secretWord);
-  }
-
+    printf("\nPlay Again? (y/n): ");
+    char responseBuffer[INPUT_BUFFER_SIZE];
+    if (fgets(responseBuffer, sizeof(responseBuffer), stdin) == NULL) {
+      if (feof(stdin)) {
+        printf("\nEOF detected. Exiting.\n");
+      } else {
+        perror("Error reading play again response");
+      }
+      playAgain = 'n'; // Set to 'n' to ensure loop termination
+    } else {
+      if (strlen(responseBuffer) > 0) {
+        playAgain = tolower(responseBuffer[0]);
+      } else {
+        playAgain = 'n';
+      }
+    }
+  } while (playAgain == 'y');
   // --- Memory cleanup ---
   printf("\nCleaning up allocated memory...\n");
   // A return value of 0 typically indicates that the program executed
