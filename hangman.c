@@ -341,7 +341,7 @@ int main() {
       playAgain = 'n'; // Signal to exit
       continue;        // Skip rest of this loop iteration
     }
-    int sscanf_result = sscanf(difficultyBuffer, "%d", &difficultyChoice);
+    sscanf(difficultyBuffer, "%d", &difficultyChoice);
     switch (difficultyChoice) {
     case 1:
       maxIncorrectGuesses = EASY_GUESSES; // Set to 8
