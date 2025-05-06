@@ -284,7 +284,7 @@ void drawHangman(int incorrectGuesses) {
             incorrectGuesses);
     break;
   }
-  printf("\\n"); // Add a little space after the drawing
+  printf("\n"); // Add a little space after the drawing
 }
 
 int main() {
@@ -362,13 +362,6 @@ int main() {
     // Task 4.5: Display incorrect guesses remaining
     int guessesRemaining = MAX_INCORRECT_GUESSES - incorrectGuesses;
     printf("Incorrect guesses remaining: %d\n", guessesRemaining);
-    if (guessesRemaining <= 0 &&
-        !gameOver) { // Temporary exit condition for testing
-      printf("DEBUG: Forcing game over (out of guesses).\n");
-      gameOver = 1;
-      continue;
-    }
-
     // Task 4.6: Display letters already guessed
     printf("Guessed letters: %s\n", guessedLetters);
 
@@ -408,51 +401,59 @@ int main() {
       }
     }
 
-    // Placeholder for where the rest of Step 5 and Step 6 logic goes
-    if (isalpha(currentGuess)) {
+    if (strchr(guessedLetters, currentGuess) != NULL) {
+      // Task 5.7: Handle the case where the letter was already guessed.
+      printf("\\n-> You already guessed '%c'. Try a different letter.\\n",
+             currentGuess);
+      pauseForUser();
+      continue; // Skip the rest of this turn
+    } else {
+      // Letter is new and valid!
+      guessedLetters[numGuessedLetters] = currentGuess;
+      numGuessedLetters++;
+      guessedLetters[numGuessedLetters] = '\0';
 
-      // Task 5.6: Check if the letter was already guessed.
-      // Use strchr (from <string.h>) to search within guessedLetters.
-      // It returns NULL if the character is not found.
-      if (strchr(guessedLetters, currentGuess) != NULL) {
-        // Task 5.7: Handle the case where the letter was already guessed.
-        printf("\\n-> You already guessed '%c'. Try a different letter.\\n",
-               currentGuess);
-        pauseForUser();
-        continue; // Skip the rest of this turn
-      } else {
-        // Letter is new and valid!
-        guessedLetters[numGuessedLetters] = currentGuess;
-        numGuessedLetters++;
-        guessedLetters[numGuessedLetters] = '\0';
-
-        // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---\
+      // --- TODO: Implement Step 6 (Process Correct/Incorrect) logic here ---\
                 // Use 'currentGuess'
-        int correctGuess = 0;
-        printf("\n-> Processing new guess '%c'...\n", currentGuess);
-        printf("    -> Checking '%c' against secret word '%s'...\n",
-               currentGuess, secretWord); // Debug
-        for (size_t i = 0; i < wordLength; i++) {
-          if (secretWord[i] == currentGuess) {
-            printf("Found match at index %zu! (Will update displayWord)\n",
-                   i);                     // Debug
-            displayWord[i] = currentGuess; // Task 6.3
-            correctGuess = 1;              // Task 6.4
-          }
+      int correctGuess = 0;
+      printf("\n-> Processing new guess '%c'...\n", currentGuess);
+      printf("    -> Checking '%c' against secret word '%s'...\n", currentGuess,
+             secretWord); // Debug
+      for (size_t i = 0; i < wordLength; i++) {
+        if (secretWord[i] == currentGuess) {
+          printf("Found match at index %zu! (Will update displayWord)\n",
+                 i);                     // Debug
+          displayWord[i] = currentGuess; // Task 6.3
+          correctGuess = 1;              // Task 6.4
         }
+      }
 
-        if (!correctGuess) {
-          printf(
-              "Guess '%c' was INCORRECT. (Will increment incorrectGuesses)\n",
-              currentGuess);  // Debug
-          incorrectGuesses++; // Task 6.5
-        } else {
-          printf("Guess '%c' was CORRECT.\n", currentGuess); // Debug
-        }
+      if (!correctGuess) {
+        printf("Guess '%c' was INCORRECT. (Will increment incorrectGuesses)\n",
+               currentGuess); // Debug
+        incorrectGuesses++;   // Task 6.5
+      } else {
+        printf("Guess '%c' was CORRECT.\n", currentGuess); // Debug
+      }
 
-      } // End of check for new/repeat guess
+    } // End of check for new/repeat guess
 
-    } // End of validation checks block
+    if (incorrectGuesses == MAX_INCORRECT_GUESSES) {
+      // Player has lost.
+      gameOver = 1;
+      playerWon = 0;
+      // Print the loss message (already done after the loop, but can add
+      // immediate feedback too)
+      printf("\n\n*** Sorry, you've run out of guesses! ***\n");
+      printf("The word was: %s\n", secretWord);
+    } else {
+      if (strchr(displayWord, '_') == NULL) {
+        // Player has won - actions to take here (Task 8.4)
+        gameOver = 1;
+        playerWon = 1;
+        printf("\n\n*** Congratulations! You guessed the word! ***\n");
+      }
+    }
 
   } // End of while (!gameOver) loop
   clearScreen();
