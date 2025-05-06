@@ -13,7 +13,8 @@
 char **loadWords(const char *filename, int *wordCount);
 void freeWordList(char **wordList, int wordCount);
 void clearScreen();
-
+void pauseForUser();
+void drawHangman(int incorrectGuesses);
 /**
  * @brief Loads words from a specified file into a dynamically allocated array
  * of strings.
@@ -194,6 +195,98 @@ void pauseForUser() {
     ;
 }
 
+void drawHangman(int incorrectGuesses) {
+  printf("\n"); // Add a little space before the drawing
+
+  // Use a switch statement based on the number of incorrect guesses
+  switch (incorrectGuesses) {
+  case 0: // 0 incorrect guesses - Empty Gallows
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break; // Don't fall through to the next case!
+
+  case 1: // 1 incorrect guess - Head
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break;
+
+  case 2: // 2 incorrect guesses - Head and Body
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf("  |   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break;
+
+  case 3: // 3 incorrect guesses - Head, Body, and One Arm
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|   |\n"); // Forward slash is not an escape character
+    printf("      |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break;
+
+  case 4: // 4 incorrect guesses - Head, Body, and Both Arms
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break;
+
+  case 5: // 5 incorrect guesses - Head, Body, Arms, and One Leg
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf(" /    |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break;
+
+  case 6: // 6 incorrect guesses - Full Hangman (Game Over state)
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf(" / \\  |\n");
+    printf("      |\n");
+    printf("=========\n");
+    break;
+
+  default: // Handle unexpected values (e.g., > 6) - Show the final stage
+    printf("  +---+\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf(" / \\  |\n");
+    printf("      |\n");
+    printf("=========\n");
+    fprintf(stderr,
+            "Warning: drawHangman called with unexpected value (%d). "
+            "Displaying final stage.\\n",
+            incorrectGuesses);
+    break;
+  }
+  printf("\\n"); // Add a little space after the drawing
+}
+
 int main() {
   srand(time(NULL));
   // Program logic will go here in later steps.
@@ -253,7 +346,7 @@ int main() {
     // system("cls");   // Windows
     clearScreen();
     printf("--- HANGMAN ---\n");
-
+    drawHangman(incorrectGuesses);
     // Task 4.3: Display Hangman drawing (call drawHangman function - Step 7)
     printf("Hangman state (Incorrect guesses: %d/%d)\n", incorrectGuesses,
            MAX_INCORRECT_GUESSES);
@@ -269,6 +362,12 @@ int main() {
     // Task 4.5: Display incorrect guesses remaining
     int guessesRemaining = MAX_INCORRECT_GUESSES - incorrectGuesses;
     printf("Incorrect guesses remaining: %d\n", guessesRemaining);
+    if (guessesRemaining <= 0 &&
+        !gameOver) { // Temporary exit condition for testing
+      printf("DEBUG: Forcing game over (out of guesses).\n");
+      gameOver = 1;
+      continue;
+    }
 
     // Task 4.6: Display letters already guessed
     printf("Guessed letters: %s\n", guessedLetters);
@@ -355,16 +454,11 @@ int main() {
 
     } // End of validation checks block
 
-    if (guessesRemaining <= 0 &&
-        !gameOver) { // Temporary exit condition for testing
-      printf("DEBUG: Forcing game over (out of guesses).\n");
-      gameOver = 1;
-      pauseForUser();
-    }
   } // End of while (!gameOver) loop
   clearScreen();
   // --- After the loop (Game Over) ---
   printf("\n--- Game Over --- \n");
+  drawHangman(incorrectGuesses);
   // Check playerWon flag (from Step 8) to display final message
   if (playerWon) {
     printf("Congratulations! You guessed the word: %s\n", secretWord);
